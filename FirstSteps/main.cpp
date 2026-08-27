@@ -38,6 +38,8 @@ static void StampBrushStroke(sf::RenderTexture& canvas,
 	}
 }
 
+void InstantiatePaletteCircles(int numCircles, float radius, float spacing, sf::RenderTexture& canvas, std::vector<sf::CircleShape>& paletteCircles);
+
 int main() {
 	sf::RenderWindow window(sf::VideoMode({1280, 720}), "Simulation Render");
 	window.setFramerateLimit(144);
@@ -55,11 +57,16 @@ int main() {
 	sf::Vector2f previousMousePosition{ 0.0f, 0.0f };
 	int frameStampCount = 0;
 
+	std::vector<sf::CircleShape> paletteCircles;
+	InstantiatePaletteCircles(5, 20.0f, 30.0f, canvas, paletteCircles);
+
+	/*
 	sf::CircleShape redCircle(20);
 	redCircle.setPosition({ 100, 100 });
 	redCircle.setFillColor(sf::Color::Red);
 	canvas.draw(redCircle);
 	canvas.display();
+	*/
 
 	sf::Color paintColor = sf::Color::White;
 
@@ -87,6 +94,16 @@ int main() {
 			accumulator -= dt;
 		}
 
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Backspace)) {
+			paintColor = sf::Color::White;
+		}
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) {
+			paletteCircles.clear();
+			canvas.clear(sf::Color::Black);
+			InstantiatePaletteCircles(5, 20.0f, 30.0f, canvas, paletteCircles);
+		}
+		
+
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
 			sf::Vector2f mousePosition = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
@@ -99,18 +116,24 @@ int main() {
 			}
 
 			// Pick a new color when clicking inside the palette circle.
-			if (redCircle.getGlobalBounds().contains(mousePosition)) {
-				toChangeColor = true;
-				paintColor = redCircle.getFillColor();
-				std::cout << "picked color from red circle\n";
+			for (const auto& paletteCircle : paletteCircles) {
+				if (paletteCircle.getGlobalBounds().contains(mousePosition)) {
+					isPainting = false; // Stop painting when picking a color
+					toChangeColor = true;
+					paintColor = paletteCircle.getFillColor();
+					std::cout << "picked color from palette circle\n";
+					break; // Exit the loop once a color is picked
+				}
+				// Otherwise draw an interpolated stroke from the last known
+				// position. previousMousePosition is updated to the current
+				// position after stamping so the next frame continues from here.
+				else if (!toChangeColor) {
+					StampBrushStroke(canvas, previousMousePosition, mousePosition, paintColor, 10.0f, frameStampCount);
+					previousMousePosition = mousePosition;
+				}
 			}
-			// Otherwise draw an interpolated stroke from the last known
-			// position. previousMousePosition is updated to the current
-			// position after stamping so the next frame continues from here.
-			else if (!toChangeColor) {
-				StampBrushStroke(canvas, previousMousePosition, mousePosition, paintColor, 10.0f, frameStampCount);
-				previousMousePosition = mousePosition;
-			}
+
+			
 
 			toChangeColor = false;
 		}
@@ -134,4 +157,22 @@ int main() {
 
 	}
 	return 0;
+}
+
+
+
+
+void InstantiatePaletteCircles(int numCircles, float radius, float spacing, sf::RenderTexture& canvas, std::vector<sf::CircleShape>& paletteCircles) {
+	// Implementation for creating palette circles
+	// Going to attempt adding a certain number of color selection circles, and each having a random color
+	// add for loop for creating circles, figure out how to do random color.
+	
+	for (int i = 0; i < numCircles; ++i) {
+		sf::CircleShape paletteCircle(radius);
+		paletteCircle.setPosition({ static_cast<float>(50 + i * (radius * 2 + spacing)), 50.0f });
+		paletteCircle.setFillColor(sf::Color(rand() % 256, rand() % 256, rand() % 256));
+		paletteCircles.push_back(paletteCircle);
+		canvas.draw(paletteCircle);
+
+	}
 }
