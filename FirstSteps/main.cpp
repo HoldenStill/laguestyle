@@ -107,46 +107,43 @@ int main() {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
 			sf::Vector2f mousePosition = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
 
-			// First frame the button is held; record the starting point so
-			// the next frame can interpolate from here.
-			if (!isPainting) {
-				isPainting = true;
-				previousMousePosition = mousePosition;
-				std::cout << "painting started at (" << mousePosition.x << ", " << mousePosition.y << ")\n";
-			}
-
-			// Pick a new color when clicking inside the palette circle.
+			// If the click is over the palette, change the color and do not draw.
+			bool overPalette = false;
 			for (const auto& paletteCircle : paletteCircles) {
 				if (paletteCircle.getGlobalBounds().contains(mousePosition)) {
-					isPainting = false; // Stop painting when picking a color
-					toChangeColor = true;
 					paintColor = paletteCircle.getFillColor();
-					std::cout << "picked color from palette circle\n";
-					break; // Exit the loop once a color is picked
-				}
-				// Otherwise draw an interpolated stroke from the last known
-				// position. previousMousePosition is updated to the current
-				// position after stamping so the next frame continues from here.
-				else if (!toChangeColor) {
-					StampBrushStroke(canvas, previousMousePosition, mousePosition, paintColor, 10.0f, frameStampCount);
-					previousMousePosition = mousePosition;
+					
+					// std::cout << "picked color from palette circle\n";
+					overPalette = true;
+					break;
 				}
 			}
 
-			
-
-			toChangeColor = false;
+			if (!overPalette) {
+				// First frame the button is held; record the starting point so
+				// the next frame can interpolate from here.
+				if (!isPainting) {
+					isPainting = true;
+					previousMousePosition = mousePosition;
+					// std::cout << "painting started at (" << mousePosition.x << ", " << mousePosition.y << ")\n";
+				}
+				// Draw an interpolated stroke from the last known position.
+				// previousMousePosition is updated to the current position
+				// after stamping so the next frame continues from here.
+				StampBrushStroke(canvas, previousMousePosition, mousePosition, paintColor, 10.0f, frameStampCount);
+				previousMousePosition = mousePosition;
+			}
 		}
 		else {
 			// Button released: reset state so the next click starts fresh.
 			if (isPainting) {
-				std::cout << "painting ended\n";
+				// std::cout << "painting ended\n";
 			}
 			isPainting = false;
 		}
 
 		// Debug: total number of brush circles drawn this frame.
-		std::cout << "frame stamps=" << frameStampCount << '\n';
+		// std::cout << "frame stamps=" << frameStampCount << '\n';
 
 		canvas.display();
 
