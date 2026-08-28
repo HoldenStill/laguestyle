@@ -24,6 +24,7 @@
     <ProjectGuid>{cebda47e-470a-41ad-a410-c2f85e523824}</ProjectGuid>
     <RootNamespace>FirstSteps</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>SFMLFirstSteps</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
